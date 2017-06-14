@@ -1,0 +1,26 @@
+version: "3"
+services:
+  web:
+    # replace username/repo:tag with your name and image details
+    # Pull the image we uploaded in step 2 from the registry.
+    image: caliari/get-started:part1
+    deploy:
+    # Run five instances of that image as a service called web
+      replicas: 5
+      resources:
+        limits:
+        # limiting each one to use, at most, 10% of the CPU (across all cores), and 50MB of RAM.
+          cpus: "0.1"
+          memory: 50M
+      restart_policy:
+      # Immediately restart containers if one fails.
+        condition: on-failure
+    ports:
+    # Map port 80 on the host to web’s port 80.
+      - "80:80"
+    networks:
+    # Instruct web’s containers to share port 80 via a load-balanced network called webnet
+      - webnet
+networks:
+# Define the webnet network with the default settings (which is a load-balanced overlay network).
+  webnet:
