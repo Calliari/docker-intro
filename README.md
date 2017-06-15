@@ -113,22 +113,27 @@ if __name__ == "__main__":
 	app.run(host='0.0.0.0', port=80)
 ```
 
-### 2. Build the container with the name "friendlyhello"
+### 2. Build the container with the name "friendlyhello".
 
 
 ```
 docker build -t friendlyhello .
 ```
 
-### Run the container friendlyhello
-export it to the port "4000" with the "-p" flag
+#### Run the container "friendlyhello"
+Export it to the port "4000" with the "-p" flag, running in attached mode
+
 ```
 docker run -p 4000:80 friendlyhello
 ```
 
 Check the container in your browser http://localhost:4000
 
-Hit CTRL+C in your terminal to quit.
+
+Using the keyboard to stop the container running in the attached mode:
+
+
+Hit ```CTRL+C``` in your terminal to quit.
 
 * Or use the curl command to do it
 
@@ -136,7 +141,7 @@ Hit CTRL+C in your terminal to quit.
 curl http://localhost:4000
 ```
 
-### Run the app in the background, in detached mode with the ""-d" flag
+#### Run the app in the background, in detached mode with the ""-d" flag.
 
 ```
 docker run -d -p 4000:80 friendlyhello
@@ -154,11 +159,12 @@ docker stop 262decdc73ec
 
 ### 3. Scale our application and enable load-balancing with docker-compose.yml file.
 
-create a docker-compose file
+Create a docker-compose file
+
 ```
 touch docker-compose.yml
 ```
-paste the bellow code into the docker-compose.yml
+Paste the bellow code into the docker-compose.yml
 
 ```
 version: "3"
@@ -189,7 +195,7 @@ networks:
   webnet:
 ```
 
-### Run your new load-balanced app
+#### Run your new load-balanced app
 
 You can name the Compose file anything you want to make it logically meaningful to you; "docker-compose.yml" is simply a standard name. We could just as easily have called this file "docker-stack.yml" or something more specific to our project.
 
@@ -197,7 +203,7 @@ You can name the Compose file anything you want to make it logically meaningful 
 docker swarm init
 ```
 
-run it with a name, give your app a name. Here, it is set to getstartedlab.
+Run it with a name, give your app a name. Here, it is set to getstartedlab.
 
 ```
 docker stack deploy -c docker-compose.yml getstartedlab
@@ -209,7 +215,7 @@ See a list of the five containers you just launched with the name :
 ```
 docker stack ps getstartedlab
 ```
-check all container
+Check all container
 
 ```
 docker stack ps
@@ -221,14 +227,13 @@ Check one-node swarm is still up and running and it is the leader "swarm'
 docker node ls
 ```
 
-
-## Deployment
+#### Deployment
 
 You can run curl http://localhost several times in a row, or go to that URL in your browser and hit refresh a few times , or open it on your browser and refresh the webpage several times to see the containers changes based on balance.
 
 The containers will be in load balance now.
 
-### Take the app down, and remove the containers
+#### Take the app down, and remove the containers
 
 Take the app down with docker stack rm
 
@@ -252,33 +257,233 @@ docker stack ps <appname>   # List the running containers associated with an app
 docker stack rm <appname>                             # Tear down an application
 ```
 
+Commands you might like to run to interact with your swarm a bit
 
-## Built With
+```
+docker-machine create --driver virtualbox myvm1 # Create a VM (Mac, Win7, Linux)
+docker-machine create -d hyperv --hyperv-virtual-switch "myswitch" myvm1 # Win10
+docker-machine env myvm1                # View basic information about your node
+docker-machine ssh myvm1 "docker node ls"         # List the nodes in your swarm
+docker-machine ssh myvm1 "docker node inspect <node ID>"        # Inspect a node
+docker-machine ssh myvm1 "docker swarm join-token -q worker"   # View join token
+docker-machine ssh myvm1   # Open an SSH session with the VM; type "exit" to end
+docker-machine ssh myvm2 "docker swarm leave"  # Make the worker leave the swarm
+docker-machine ssh myvm1 "docker swarm leave -f" # Make master leave, kill swarm
+docker-machine start myvm1            # Start a VM that is currently not running
+docker-machine stop $(docker-machine ls -q)               # Stop all running VMs
+docker-machine rm $(docker-machine ls -q) # Delete all VMs and their disk images
+docker-machine scp docker-compose.yml myvm1:~     # Copy file to node's home dir
+docker-machine ssh myvm1 "docker stack deploy -c <file> <app>"   # Deploy an app
+```
 
-* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-* [Maven](https://maven.apache.org/) - Dependency Management
-* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
+### 4. Swarm clusters
+A swarm is a group of machines that are running Docker and joined into a cluster
 
-## Contributing
+create at least 2 vms
 
-Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
+```
+docker-machine create --driver virtualbox myvm1
+docker-machine create --driver virtualbox myvm2
+```
 
-## Versioning
+Make swarm manager with
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags).
+```
+docker-machine ssh myvm1 "docker swarm init"
+```
 
-## Authors
+The port for swarm joins with "--advertise-addr"
 
-* **Billie Thompson** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
+```
+docker-machine ssh myvm1 "docker swarm init --advertise-addr 192.168.99.100:2377"
 
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
+```
 
-## License
+One node will be the manager (leader) the the other the worker (node worker)
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+```
+docker-machine ssh myvm2 "docker swarm join \
+--token <token> \
+<ip>:<port>"
 
-## Acknowledgments
+This node joined a swarm as a worker.
+```
+Check the vms (leader and worker)
+if the node has nothing on the column "MANAGER STATUS" it's worker
 
-* Hat tip to anyone who's code was used
-* Inspiration
-* etc
+```
+docker-machine ssh myvm1 "docker node ls"
+```
+
+Copy the "docker-compose.yml" file from the local machin into the learder vm with the 'scp' protocol
+
+```
+docker-machine scp docker-compose.yml myvm1:~
+```
+
+The vm myvm1 use its powers as a swarm manager to deploy your app
+
+```
+docker-machine ssh myvm1 "docker stack deploy -c docker-compose.yml getstartedlab"
+
+```
+
+Check the deployment by ssh into vm "myvm1" leader
+
+```
+docker-machine ssh myvm1
+```
+
+Inside the myvm1 type
+
+```
+"docker stack ps getstartedlab"
+```
+
+ Or simply do
+
+ ```
+ docker-machine ssh myvm1 "docker stack ps getstartedlab"
+ ```
+
+ You can tear down the stack with docker stack rm.
+
+```
+ docker-machine ssh myvm1 "docker stack rm getstartedlab"
+```
+
+You can remove this swarm if you want to with ```docker-machine ssh myvm2 "docker swarm leave"``` on the worker and ```docker-machine ssh myvm1 "docker swarm leave --force"``` on the manager
+
+
+### 5. Swarm clusters with visualizer
+
+```
+version: "3"
+services:
+  web:
+    # replace username/repo:tag with your name and image details
+    image: username/repo:tag
+    deploy:
+      replicas: 5
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: "0.1"
+          memory: 50M
+    ports:
+      - "80:80"
+    networks:
+      - webnet
+  visualizer:
+    image: dockersamples/visualizer:stable
+    ports:
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+    networks:
+      - webnet
+networks:
+  webnet:
+```
+
+Copy this new docker-compose.yml file to the swarm manager, myvm1
+
+```
+docker-machine scp docker-compose.yml myvm1:~
+
+```
+
+Re-run the docker stack deploy command on the manager
+
+```
+docker-machine ssh myvm1 "docker stack deploy -c docker-compose.yml getstartedlab"
+
+```
+
+Check from the visualizer on ```http://192.168.99.100:8080/```
+
+Check from the CMD ```docker-machine ssh myvm1 "docker stack ps getstartedlab"```
+
+If you stop the containers the date will be lost fro that reason let's do the same but the "Persist the data" now
+
+New "docker-compose.yml" file
+
+```
+version: "3"
+services:
+  web:
+    # replace username/repo:tag with your name and image details
+    image: username/repo:tag
+    deploy:
+      replicas: 5
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: "0.1"
+          memory: 50M
+    ports:
+      - "80:80"
+    networks:
+      - webnet
+  visualizer:
+    image: dockersamples/visualizer:stable
+    ports:
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+    networks:
+      - webnet
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./data:/data
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+    networks:
+      - webnet
+networks:
+  webnet:
+```
+
+Ready to deploy your new Redis-using stack
+Create a ./data directory on the manager:
+Redis service that will provide a visitor counter.
+
+```
+docker-machine ssh myvm1 "mkdir ./data"
+```
+
+Replace the docker-compose.yml file
+```
+docker-machine scp docker-compose.yml myvm1:~
+```
+
+Run docker stack deploy one more time.
+
+```
+docker-machine ssh myvm1 "docker stack deploy -c docker-compose.yml getstartedlab"
+```
+
+=======================================
+Check the app on browser ```http://192.168.99.100``` or ```http://192.168.99.101```
+
+Check the app with curl ```curl http://192.168.99.100``` or ``` curl http://192.168.99.101 ```
+
+Check from the visualizer on ```http://192.168.99.100:8080/```
+
+Check from the CMD ```docker-machine ssh myvm1 "docker stack ps getstartedlab"```
+
+
+### References and Authors
+https://docs.docker.com/
