@@ -485,5 +485,25 @@ Check from the visualizer on ```http://192.168.99.100:8080/```
 Check from the CMD ```docker-machine ssh myvm1 "docker stack ps getstartedlab"```
 
 
+
+======================= All in two script ==============================
+
+### If you want to do this lab quickly just to check how everything works.
+
+Firstly --> run ```.script-0.sh```
+
+Secondly --> docker-machine ssh myvm2
+  * copy and paste the code "(docker swarm join) cmd given when you run the [script-0.sh], there is HIT when the script has finished" 
+
+Thirdly --> run ```.script-1.sh```
+
+
+### If you want to wipe out you machine now just run the file:
+
+
+```
+.remove-delete-all.sh
+```
+
 ### References and Authors
 https://docs.docker.com/
