@@ -493,13 +493,12 @@ Check from the CMD ```docker-machine ssh myvm1 "docker stack ps getstartedlab"``
 Firstly --> run ```.script-0.sh```
 
 Secondly --> docker-machine ssh myvm2
-  * copy and paste the code "(docker swarm join) cmd given when you run the [script-0.sh], there is HIT when the script has finished" 
+  * copy and paste the code "(docker swarm join) cmd given when you run the [script-0.sh], there is HIT when the script has finished"
 
 Thirdly --> run ```.script-1.sh```
 
 
-### If you want to wipe out you machine now just run the file:
-
+### If you want to wipe out this docker VMs (myvm1 && myvm2) from your machine just run the file:
 
 ```
 .remove-delete-all.sh
