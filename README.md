@@ -498,7 +498,7 @@ Secondly --> docker-machine ssh myvm2
 Thirdly --> run ```.script-1.sh```
 
 
-### If you want to wipe out this docker VMs (myvm1 && myvm2) from your machine just run the file:
+### If you want to wipe out this docker VMs (myvm1 & myvm2) from your local machine just run the the following script:
 
 ```
 .remove-delete-all.sh
